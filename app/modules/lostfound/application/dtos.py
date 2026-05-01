@@ -46,6 +46,9 @@ class ClaimReviewDTO:
     submitted_at: datetime
     decision_reason: str | None
     decided_at: datetime | None
+    handover_note: str | None
+    handover_arranged_at: datetime | None
+    handed_over_at: datetime | None
 
 
 @dataclass
@@ -134,6 +137,9 @@ def to_claim_review_dto(claim: Claim) -> ClaimReviewDTO:
         submitted_at=claim.submitted_at,
         decision_reason=claim.decision_reason,
         decided_at=claim.decided_at,
+        handover_note=claim.handover_note,
+        handover_arranged_at=claim.handover_arranged_at,
+        handed_over_at=claim.handed_over_at,
     )
 
 

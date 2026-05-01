@@ -152,6 +152,12 @@ def _repair_expanded_schema(sync_conn) -> None:
             sync_conn.execute(text('ALTER TABLE "claims" ADD COLUMN "decision_reason" TEXT'))
         if "decided_at" not in claim_columns:
             sync_conn.execute(text('ALTER TABLE "claims" ADD COLUMN "decided_at" TIMESTAMP WITHOUT TIME ZONE'))
+        if "handover_note" not in claim_columns:
+            sync_conn.execute(text('ALTER TABLE "claims" ADD COLUMN "handover_note" TEXT'))
+        if "handover_arranged_at" not in claim_columns:
+            sync_conn.execute(text('ALTER TABLE "claims" ADD COLUMN "handover_arranged_at" TIMESTAMP WITHOUT TIME ZONE'))
+        if "handed_over_at" not in claim_columns:
+            sync_conn.execute(text('ALTER TABLE "claims" ADD COLUMN "handed_over_at" TIMESTAMP WITHOUT TIME ZONE'))
 
     if "user_profiles" not in existing_tables:
         sync_conn.execute(

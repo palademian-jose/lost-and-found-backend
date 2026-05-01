@@ -26,7 +26,7 @@ class ItemModel(Base):
     happened_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     posted_by_user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     contact_preference: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     active_claim_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -80,9 +80,12 @@ class ClaimModel(Base):
     )
     claimant_user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     proof_statement: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     decision_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    handover_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    handover_arranged_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    handed_over_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=utcnow_naive,

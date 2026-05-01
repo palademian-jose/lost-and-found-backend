@@ -130,10 +130,20 @@ class Item:
         self.active_claim_id = claim_id
 
     def mark_returned(self) -> None:
-        if self.status != ItemStatus.PENDING:
-            raise ValueError("Item must be PENDING to be marked RETURNED.")
+        if self.status != ItemStatus.HANDOVER_ARRANGED:
+            raise ValueError("Item must have an arranged handover before it can be marked RETURNED.")
         self.status = ItemStatus.RETURNED
         self.resolved_at = datetime.now(UTC).replace(tzinfo=None)
+
+    def approve_for_handover(self) -> None:
+        if self.status != ItemStatus.PENDING:
+            raise ValueError("Item must be PENDING before handover approval.")
+        self.status = ItemStatus.APPROVED_FOR_HANDOVER
+
+    def arrange_handover(self) -> None:
+        if self.status != ItemStatus.APPROVED_FOR_HANDOVER:
+            raise ValueError("Item must be approved before arranging handover.")
+        self.status = ItemStatus.HANDOVER_ARRANGED
 
     def mark_returned_without_claim(self) -> None:
         if self.status != ItemStatus.OPEN:

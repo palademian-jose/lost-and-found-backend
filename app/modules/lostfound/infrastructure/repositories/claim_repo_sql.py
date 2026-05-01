@@ -81,6 +81,9 @@ class ClaimRepositorySQL(ClaimRepository):
         model.status = claim.status.value
         model.decision_reason = claim.decision_reason
         model.decided_at = claim.decided_at
+        model.handover_note = claim.handover_note
+        model.handover_arranged_at = claim.handover_arranged_at
+        model.handed_over_at = claim.handed_over_at
         await self.session.flush()
 
     async def list_by_item(self, item_id: UUID) -> list[Claim]:

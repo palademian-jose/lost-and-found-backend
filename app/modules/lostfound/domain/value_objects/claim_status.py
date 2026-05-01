@@ -3,4 +3,6 @@ from enum import Enum
 class ClaimStatus(str, Enum):
     SUBMITTED = "SUBMITTED"
     APPROVED = "APPROVED"
+    HANDOVER_ARRANGED = "HANDOVER_ARRANGED"
+    HANDED_OVER = "HANDED_OVER"
     REJECTED = "REJECTED"

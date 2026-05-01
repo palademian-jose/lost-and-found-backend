@@ -9,7 +9,14 @@ from app.shared.infrastructure.db import get_session
 from app.shared.infrastructure.rate_limit import rate_limit
 from app.shared.infrastructure.settings import settings
 
-from ...application.commands.decide_claim import DecideClaimCommand, DecideClaimHandler
+from ...application.commands.decide_claim import (
+    ArrangeHandoverCommand,
+    ArrangeHandoverHandler,
+    CompleteHandoverCommand,
+    CompleteHandoverHandler,
+    DecideClaimCommand,
+    DecideClaimHandler,
+)
 from ...application.queries.list_my_claims import ListMyClaimsHandler, ListMyClaimsQuery
 from ...infrastructure.repositories.audit_repo_sql import AuditLogRepositorySQL
 from ...infrastructure.repositories.claim_repo_sql import ClaimRepositorySQL
@@ -35,6 +42,10 @@ def _raise_claim_error(exc: ValueError) -> None:
 class DecideRequest(BaseModel):
     decision: str
     reason: str | None = None
+
+
+class ArrangeHandoverRequest(BaseModel):
+    handover_note: str
 
 
 @router.get("/claims/mine")
@@ -88,3 +99,61 @@ async def decide_claim(
         _raise_claim_error(exc)
 
     return {"status": "ok"}
+
+
+@router.post("/claims/{claim_id}/handover")
+async def arrange_handover(
+    claim_id: UUID,
+    req: ArrangeHandoverRequest,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    handler = ArrangeHandoverHandler(
+        item_repo=ItemRepositorySQL(session),
+        claim_repo=ClaimRepositorySQL(session),
+        audit_repo=AuditLogRepositorySQL(session),
+        notification_repo=NotificationRepositorySQL(session),
+    )
+
+    try:
+        await handler.handle(
+            ArrangeHandoverCommand(
+                claim_id=claim_id,
+                actor_user_id=user.id,
+                handover_note=req.handover_note,
+            )
+        )
+        await session.commit()
+    except ValueError as exc:
+        await session.rollback()
+        _raise_claim_error(exc)
+
+    return {"status": "handover_arranged"}
+
+
+@router.post("/claims/{claim_id}/handover/complete")
+async def complete_handover(
+    claim_id: UUID,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    handler = CompleteHandoverHandler(
+        item_repo=ItemRepositorySQL(session),
+        claim_repo=ClaimRepositorySQL(session),
+        audit_repo=AuditLogRepositorySQL(session),
+        notification_repo=NotificationRepositorySQL(session),
+    )
+
+    try:
+        await handler.handle(
+            CompleteHandoverCommand(
+                claim_id=claim_id,
+                actor_user_id=user.id,
+            )
+        )
+        await session.commit()
+    except ValueError as exc:
+        await session.rollback()
+        _raise_claim_error(exc)
+
+    return {"status": "handover_completed"}

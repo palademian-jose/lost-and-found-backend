@@ -60,4 +60,7 @@ def map_claim_model_to_domain(model: ClaimModel) -> Claim:
         submitted_at=model.submitted_at,
         decision_reason=model.decision_reason,
         decided_at=model.decided_at,
+        handover_note=model.handover_note,
+        handover_arranged_at=model.handover_arranged_at,
+        handed_over_at=model.handed_over_at,
     )

@@ -3,4 +3,6 @@ from enum import Enum
 class ItemStatus(str, Enum):
     OPEN = "OPEN"
     PENDING = "PENDING"
+    APPROVED_FOR_HANDOVER = "APPROVED_FOR_HANDOVER"
+    HANDOVER_ARRANGED = "HANDOVER_ARRANGED"
     RETURNED = "RETURNED"

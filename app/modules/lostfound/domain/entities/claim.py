@@ -16,6 +16,9 @@ class Claim:
     submitted_at: datetime
     decision_reason: str | None = None
     decided_at: datetime | None = None
+    handover_note: str | None = None
+    handover_arranged_at: datetime | None = None
+    handed_over_at: datetime | None = None
 
     def approve(self, decision_reason: str | None = None):
         if self.status != ClaimStatus.SUBMITTED:
@@ -30,3 +33,19 @@ class Claim:
         self.status = ClaimStatus.REJECTED
         self.decision_reason = decision_reason.strip() if decision_reason else None
         self.decided_at = datetime.now(UTC).replace(tzinfo=None)
+
+    def arrange_handover(self, handover_note: str):
+        if self.status != ClaimStatus.APPROVED:
+            raise ValueError("Only approved claims can have handover arranged.")
+        note = handover_note.strip()
+        if not note:
+            raise ValueError("Handover note is required.")
+        self.status = ClaimStatus.HANDOVER_ARRANGED
+        self.handover_note = note
+        self.handover_arranged_at = datetime.now(UTC).replace(tzinfo=None)
+
+    def complete_handover(self):
+        if self.status != ClaimStatus.HANDOVER_ARRANGED:
+            raise ValueError("Only arranged handovers can be completed.")
+        self.status = ClaimStatus.HANDED_OVER
+        self.handed_over_at = datetime.now(UTC).replace(tzinfo=None)
