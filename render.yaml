@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: lost-and-found-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: LOSTFOUND_DATABASE_URL
+        fromDatabase:
+          name: lost-and-found-db
+          property: connectionString
+      - key: LOSTFOUND_JWT_SECRET_KEY
+        generateValue: true
+      - key: LOSTFOUND_ENVIRONMENT
+        value: production
+      - key: LOSTFOUND_AUTO_CREATE_SCHEMA_ON_STARTUP
+        value: false
+      - key: LOSTFOUND_REPAIR_SCHEMA_ON_STARTUP
+        value: false
+      - key: LOSTFOUND_CORS_ALLOWED_ORIGINS
+        value: https://frontend-amber-iota-dzew43o2o6.vercel.app,https://frontend-guuwdx9vu-palademianjoses-projects.vercel.app
+
+databases:
+  - name: lost-and-found-db
+    plan: free
+    databaseName: lostfound
+    user: lostfound
