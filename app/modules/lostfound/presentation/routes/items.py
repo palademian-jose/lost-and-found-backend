@@ -15,7 +15,12 @@ from app.shared.infrastructure.rate_limit import rate_limit
 from app.shared.infrastructure.settings import settings
 
 from ...application.commands.create_item import CreateItemCommand, CreateItemHandler
-from ...application.commands.moderate_item import RemoveItemCommand, RemoveItemHandler
+from ...application.commands.moderate_item import (
+    MarkItemReturnedCommand,
+    MarkItemReturnedHandler,
+    RemoveItemCommand,
+    RemoveItemHandler,
+)
 from ...application.commands.submit_claim import SubmitClaimCommand, SubmitClaimHandler
 from ...application.queries.get_item_claim_questions import (
     GetItemClaimQuestionsHandler,
@@ -281,6 +286,33 @@ async def list_item_claims(
         _raise_item_error(exc)
 
     return [asdict(claim) for claim in claims]
+
+
+@router.post("/items/{item_id}/mark-returned")
+async def mark_item_returned(
+    item_id: UUID,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    handler = MarkItemReturnedHandler(
+        item_repo=ItemRepositorySQL(session),
+        audit_repo=AuditLogRepositorySQL(session),
+    )
+
+    try:
+        await handler.handle(
+            MarkItemReturnedCommand(
+                item_id=item_id,
+                actor_user_id=user.id,
+                is_admin=user.role == UserRole.ADMIN.value,
+            )
+        )
+        await session.commit()
+    except ValueError as exc:
+        await session.rollback()
+        _raise_item_error(exc)
+
+    return {"status": "returned"}
 
 
 @router.delete("/admin/items/{item_id}")

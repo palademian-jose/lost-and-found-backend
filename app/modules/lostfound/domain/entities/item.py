@@ -135,6 +135,13 @@ class Item:
         self.status = ItemStatus.RETURNED
         self.resolved_at = datetime.now(UTC).replace(tzinfo=None)
 
+    def mark_returned_without_claim(self) -> None:
+        if self.status != ItemStatus.OPEN:
+            raise ValueError("Only open items can be marked returned without a claim.")
+        self.status = ItemStatus.RETURNED
+        self.active_claim_id = None
+        self.resolved_at = datetime.now(UTC).replace(tzinfo=None)
+
     def reopen(self) -> None:
         if self.status != ItemStatus.PENDING:
             raise ValueError("Item must be PENDING to reopen.")
