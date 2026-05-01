@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     cors_allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     auto_create_schema_on_startup: bool = True
     repair_schema_on_startup: bool = True
+    seed_default_users_on_startup: bool = False
+    seed_admin_email: str = "admin@example.com"
+    seed_admin_password: str = "123456"
+    seed_owner_email: str = "owner@example.com"
+    seed_owner_password: str = "123456"
+    seed_finder_email: str = "finder@example.com"
+    seed_finder_password: str = "123456"
 
     @field_validator("database_url", mode="before")
     @classmethod

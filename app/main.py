@@ -3,11 +3,13 @@ from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
 
-from app.shared.infrastructure.db import Base, engine
+from app.shared.infrastructure.db import AsyncSessionLocal, Base, engine
 
 from app.modules.auth.infrastructure.orm import models as auth_models  # noqa: F401
+from app.modules.auth.infrastructure.orm.models import UserModel
+from app.modules.auth.infrastructure.security.password import hash_password
 from app.modules.auth.presentation.routes import admin_router as admin_routes_router
 from app.modules.auth.presentation.routes import router as auth_routes_router
 from app.modules.lostfound.infrastructure.orm import models as lostfound_models  # noqa: F401
@@ -210,6 +212,43 @@ def _repair_expanded_schema(sync_conn) -> None:
         sync_conn.execute(text('CREATE INDEX "ix_notifications_user_id" ON "notifications" ("user_id")'))
 
 
+async def _seed_default_users() -> None:
+    if not settings.seed_default_users_on_startup:
+        return
+
+    default_users = (
+        (settings.seed_admin_email, settings.seed_admin_password, "ADMIN"),
+        (settings.seed_owner_email, settings.seed_owner_password, "MEMBER"),
+        (settings.seed_finder_email, settings.seed_finder_password, "MEMBER"),
+    )
+
+    async with AsyncSessionLocal() as session:
+        for email, password, role in default_users:
+            normalized_email = email.strip().lower()
+            if not normalized_email or not password:
+                continue
+
+            existing_user = await session.scalar(
+                select(UserModel).where(UserModel.email == normalized_email).limit(1)
+            )
+
+            if existing_user is None:
+                session.add(
+                    UserModel(
+                        email=normalized_email,
+                        password_hash=hash_password(password),
+                        role=role,
+                        is_active=True,
+                    )
+                )
+            else:
+                existing_user.password_hash = hash_password(password)
+                existing_user.role = role
+                existing_user.is_active = True
+
+        await session.commit()
+
+
 async def startup():
     async with engine.begin() as conn:
         if settings.repair_schema_on_startup:
@@ -219,6 +258,8 @@ async def startup():
 
         if settings.auto_create_schema_on_startup:
             await conn.run_sync(Base.metadata.create_all)
+
+    await _seed_default_users()
 
 
 @asynccontextmanager
