@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     seed_owner_password: str = "123456"
     seed_finder_email: str = "finder@example.com"
     seed_finder_password: str = "123456"
+    seed_demo_items_on_startup: bool = False
 
     @field_validator("database_url", mode="before")
     @classmethod
